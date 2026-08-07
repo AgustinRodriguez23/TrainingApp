@@ -45,5 +45,6 @@ const routineSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
+const RoutineModel = mongoose.model("Routine", routineSchema)
 
-const routineModel = mongoose.model("Routine", routineSchema)
+export default RoutineModel

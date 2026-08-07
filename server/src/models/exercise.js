@@ -16,4 +16,6 @@ const exerciseSchema = new mongoose.Schema({
   }
 }, { timestamps: true })
 
-const exerciseModel = mongoose.model("Exercise", exerciseSchema)
+const ExerciseModel = mongoose.model("Exercise", exerciseSchema)
+
+export default ExerciseModel
