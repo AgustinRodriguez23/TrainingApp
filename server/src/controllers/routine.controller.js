@@ -26,10 +26,11 @@ class RoutineController {
     };
 
     static createRoutine = async (req, res) => {
-        try {
+         try {
             const routine = new RoutineModel(req.body);
-            const saved = await routine.save();
-            res.status(201).json(saved);
+            await routine.save();
+            const populated = await routine.populate('exercises.exercise');
+            res.status(201).json(populated);
         } catch (error) {
             res.status(400).json({ message: error.message });
         }

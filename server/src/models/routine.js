@@ -12,13 +12,22 @@ const routineExerciseSchema = new mongoose.Schema({
     default: 3
   },
   weight: {
-    // peso en kg, opcional (hay ejercicios sin carga externa)
     type: Number,
     min: 0
   },
+  measureType: {
+    type: String,
+    enum: ['reps', 'time'],
+    required: true,
+    default: 'reps'
+  },
+  reps: {
+    type: Number,
+    min: 1
+  },
   executionTime: {
     type: Number,
-    required: true
+    min: 1
   },
   restBetweenSeries: {
     type: Number,
@@ -30,6 +39,15 @@ const routineExerciseSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
+routineExerciseSchema.pre('validate', function () {
+  if (this.measureType === 'reps' && !this.reps) {
+    throw new Error('Falta el campo "reps" para un ejercicio medido por repeticiones');
+  }
+  if (this.measureType === 'time' && !this.executionTime) {
+    throw new Error('Falta el campo "executionTime" para un ejercicio medido por tiempo');
+  }
+});
+
 const routineSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -37,7 +55,6 @@ const routineSchema = new mongoose.Schema({
     trim: true
   },
   day: {
-    // ej: "Lunes", "Full body", lo que quieras usar como etiqueta
     type: String,
     trim: true
   },
