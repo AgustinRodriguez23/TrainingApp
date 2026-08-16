@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getExercises } from '../services/exercise.service';
-import { createRoutine } from '../services/routine.service';
+import { createRoutine, updateRoutine } from '../services/routine.service';
 
 const emptyBlock = {
   exercise: '',
@@ -13,7 +13,20 @@ const emptyBlock = {
   restAfterExercise: 60
 };
 
-function RoutineForm({ onCreated }) {
+// Convierte un bloque que viene "populado" del backend (exercise como objeto)
+// al formato que usa el form (exercise como string de ID)
+const blockFromRoutine = (b) => ({
+  exercise: b.exercise?._id || b.exercise || '',
+  series: b.series,
+  weight: b.weight,
+  measureType: b.measureType,
+  reps: b.reps ?? 10,
+  executionTime: b.executionTime ?? 30,
+  restBetweenSeries: b.restBetweenSeries,
+  restAfterExercise: b.restAfterExercise
+});
+
+function RoutineForm({ onCreated, onUpdated, editingRoutine, onCancelEdit }) {
   const [name, setName] = useState('');
   const [day, setDay] = useState('');
   const [blocks, setBlocks] = useState([{ ...emptyBlock }]);
@@ -21,20 +34,35 @@ function RoutineForm({ onCreated }) {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 
+  const isEditing = Boolean(editingRoutine);
+
   useEffect(() => {
     getExercises().then((res) => setExercisesList(res.data));
   }, []);
 
-    const updateBlock = (index, field, value) => {
-    setBlocks((prev) =>
-        prev.map((block, i) => (i === index ? { ...block, [field]: value } : block))
-    );
-    };
+  // Cuando cambia la rutina a editar, precargamos nombre, día y bloques
+  useEffect(() => {
+    if (editingRoutine) {
+      setName(editingRoutine.name || '');
+      setDay(editingRoutine.day || '');
+      setBlocks(editingRoutine.exercises.map(blockFromRoutine));
+    } else {
+      setName('');
+      setDay('');
+      setBlocks([{ ...emptyBlock }]);
+    }
+  }, [editingRoutine]);
 
-    const updateBlockNumber = (index, field, rawValue) => {
+  const updateBlock = (index, field, value) => {
+    setBlocks((prev) =>
+      prev.map((block, i) => (i === index ? { ...block, [field]: value } : block))
+    );
+  };
+
+  const updateBlockNumber = (index, field, rawValue) => {
     const value = Math.max(0, Number(rawValue) || 0);
     updateBlock(index, field, value);
-    };
+  };
 
   const addBlock = () => {
     setBlocks((prev) => [...prev, { ...emptyBlock }]);
@@ -76,11 +104,16 @@ function RoutineForm({ onCreated }) {
 
     setSaving(true);
     try {
-      const res = await createRoutine({ name, day, exercises: cleanedBlocks });
-      setName('');
-      setDay('');
-      setBlocks([{ ...emptyBlock }]);
-      if (onCreated) onCreated(res.data);
+      if (isEditing) {
+        const res = await updateRoutine(editingRoutine._id, { name, day, exercises: cleanedBlocks });
+        if (onUpdated) onUpdated(res.data);
+      } else {
+        const res = await createRoutine({ name, day, exercises: cleanedBlocks });
+        if (onCreated) onCreated(res.data);
+        setName('');
+        setDay('');
+        setBlocks([{ ...emptyBlock }]);
+      }
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     } finally {
@@ -90,7 +123,7 @@ function RoutineForm({ onCreated }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2>Nueva rutina</h2>
+      <h2>{isEditing ? 'Editar rutina' : 'Nueva rutina'}</h2>
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
@@ -122,25 +155,25 @@ function RoutineForm({ onCreated }) {
             </select>
           </div>
 
-            <div>
-                <label>Series</label>
-                <input
-                type="number"
-                min="0"
-                value={block.series}
-                onChange={(e) => updateBlockNumber(index, 'series', e.target.value)}
+          <div>
+            <label>Series</label>
+            <input
+              type="number"
+              min="0"
+              value={block.series}
+              onChange={(e) => updateBlockNumber(index, 'series', e.target.value)}
             />
-            </div>
+          </div>
 
-            <div>
+          <div>
             <label>Peso (kg)</label>
             <input
-                type="number"
-                min="0"
-                value={block.weight}
-                onChange={(e) => updateBlockNumber(index, 'weight', e.target.value)}
+              type="number"
+              min="0"
+              value={block.weight}
+              onChange={(e) => updateBlockNumber(index, 'weight', e.target.value)}
             />
-            </div>
+          </div>
 
           <div>
             <label>Tipo de medición</label>
@@ -155,45 +188,45 @@ function RoutineForm({ onCreated }) {
 
           {block.measureType === 'reps' ? (
             <div>
-                <label>Repeticiones</label>
-                <input
+              <label>Repeticiones</label>
+              <input
                 type="number"
                 min="0"
                 value={block.reps}
                 onChange={(e) => updateBlockNumber(index, 'reps', e.target.value)}
-                />
+              />
             </div>
-            ) : (
+          ) : (
             <div>
-                <label>Tiempo de ejecución (seg)</label>
-                <input
+              <label>Tiempo de ejecución (seg)</label>
+              <input
                 type="number"
                 min="0"
                 value={block.executionTime}
                 onChange={(e) => updateBlockNumber(index, 'executionTime', e.target.value)}
-                />
+              />
             </div>
-            )}
+          )}
 
-            <div>
-                <label>Descanso entre series (seg)</label>
-                <input
-                    type="number"
-                    min="0"
-                    value={block.restBetweenSeries}
-                    onChange={(e) => updateBlockNumber(index, 'restBetweenSeries', e.target.value)}
-                />
-                </div>
+          <div>
+            <label>Descanso entre series (seg)</label>
+            <input
+              type="number"
+              min="0"
+              value={block.restBetweenSeries}
+              onChange={(e) => updateBlockNumber(index, 'restBetweenSeries', e.target.value)}
+            />
+          </div>
 
-                <div>
-                <label>Descanso post-ejercicio (seg)</label>
-                <input
-                    type="number"
-                    min="0"
-                    value={block.restAfterExercise}
-                    onChange={(e) => updateBlockNumber(index, 'restAfterExercise', e.target.value)}
-                />
-            </div>
+          <div>
+            <label>Descanso post-ejercicio (seg)</label>
+            <input
+              type="number"
+              min="0"
+              value={block.restAfterExercise}
+              onChange={(e) => updateBlockNumber(index, 'restAfterExercise', e.target.value)}
+            />
+          </div>
 
           {blocks.length > 1 && (
             <button type="button" onClick={() => removeBlock(index)}>
@@ -211,8 +244,13 @@ function RoutineForm({ onCreated }) {
       <br />
 
       <button type="submit" disabled={saving}>
-        {saving ? 'Guardando...' : 'Crear rutina'}
+        {saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear rutina'}
       </button>
+      {isEditing && (
+        <button type="button" onClick={onCancelEdit}>
+          Cancelar
+        </button>
+      )}
     </form>
   );
 }

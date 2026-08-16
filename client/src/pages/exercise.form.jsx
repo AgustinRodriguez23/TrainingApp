@@ -1,12 +1,27 @@
-import { useState } from 'react';
-import { createExercise } from '../services/exercise.service';
+import { useState, useEffect } from 'react';
+import { createExercise, updateExercise } from '../services/exercise.service';
 
-function ExerciseForm({ onCreated }) {
+function ExerciseForm({ onCreated, onUpdated, editingExercise, onCancelEdit }) {
   const [name, setName] = useState('');
   const [muscleGroup, setMuscleGroup] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  const isEditing = Boolean(editingExercise);
+
+  // Cuando cambia el ejercicio a editar, precargamos los campos
+  useEffect(() => {
+    if (editingExercise) {
+      setName(editingExercise.name || '');
+      setMuscleGroup(editingExercise.muscleGroup || '');
+      setDescription(editingExercise.description || '');
+    } else {
+      setName('');
+      setMuscleGroup('');
+      setDescription('');
+    }
+  }, [editingExercise]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,11 +34,16 @@ function ExerciseForm({ onCreated }) {
 
     setSaving(true);
     try {
-      const res = await createExercise({ name, muscleGroup, description });
-      setName('');
-      setMuscleGroup('');
-      setDescription('');
-      if (onCreated) onCreated(res.data); // avisa al padre que se creó, por si quiere refrescar la lista
+      if (isEditing) {
+        const res = await updateExercise(editingExercise._id, { name, muscleGroup, description });
+        if (onUpdated) onUpdated(res.data);
+      } else {
+        const res = await createExercise({ name, muscleGroup, description });
+        if (onCreated) onCreated(res.data);
+        setName('');
+        setMuscleGroup('');
+        setDescription('');
+      }
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     } finally {
@@ -33,7 +53,7 @@ function ExerciseForm({ onCreated }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2>Nuevo ejercicio</h2>
+      <h2>{isEditing ? 'Editar ejercicio' : 'Nuevo ejercicio'}</h2>
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
@@ -66,8 +86,13 @@ function ExerciseForm({ onCreated }) {
       </div>
 
       <button type="submit" disabled={saving}>
-        {saving ? 'Guardando...' : 'Crear ejercicio'}
+        {saving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear ejercicio'}
       </button>
+      {isEditing && (
+        <button type="button" onClick={onCancelEdit}>
+          Cancelar
+        </button>
+      )}
     </form>
   );
 }
