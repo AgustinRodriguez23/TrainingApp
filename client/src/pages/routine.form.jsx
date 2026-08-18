@@ -64,6 +64,17 @@ function RoutineForm({ onCreated, onUpdated, editingRoutine, onCancelEdit }) {
     updateBlock(index, field, value);
   };
 
+  const moveBlock = (index, direction) => {
+  setBlocks((prev) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= prev.length) return prev;
+
+    const updated = [...prev];
+    [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
+    return updated;
+  });
+};
+
   const addBlock = () => {
     setBlocks((prev) => [...prev, { ...emptyBlock }]);
   };
@@ -228,11 +239,27 @@ function RoutineForm({ onCreated, onUpdated, editingRoutine, onCancelEdit }) {
             />
           </div>
 
-          {blocks.length > 1 && (
-            <button type="button" onClick={() => removeBlock(index)}>
-              Quitar ejercicio
-            </button>
-          )}
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={() => moveBlock(index, -1)}
+                disabled={index === 0}
+              >
+                ↑ Subir
+              </button>
+              <button
+                type="button"
+                onClick={() => moveBlock(index, 1)}
+                disabled={index === blocks.length - 1}
+              >
+                ↓ Bajar
+              </button>
+              {blocks.length > 1 && (
+                <button type="button" onClick={() => removeBlock(index)}>
+                  Quitar ejercicio
+                </button>
+              )}
+          </div>
         </div>
       ))}
 
