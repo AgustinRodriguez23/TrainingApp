@@ -13,6 +13,11 @@ const exerciseSchema = new mongoose.Schema({
   description: {
     type: String,
     trim: true
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   }
 }, { timestamps: true })
 
