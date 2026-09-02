@@ -2,8 +2,14 @@
 
 Aplicación full stack (MERN) para crear rutinas de entrenamiento personalizadas y ejecutarlas guiado por un temporizador en tiempo real, con transición automática entre series, descansos y ejercicios.
 
+🔗 **Demo:** [training-app-eight-sage.vercel.app](https://training-app-eight-sage.vercel.app/)
+🔗 **API:** [trainingapp-yb70.onrender.com](https://trainingapp-yb70.onrender.com/)
+
+> ⚠️ El backend está en el plan gratuito de Render, que "duerme" tras un período de inactividad. La primera carga puede tardar 30-50 segundos en despertar el servidor.
+
 ## Funcionalidades
 
+- **Autenticación multiusuario**: registro e inicio de sesión con JWT. Cada usuario ve y gestiona únicamente sus propias rutinas y ejercicios; las rutas de la API están protegidas y validan la propiedad de cada recurso antes de permitir su lectura, edición o eliminación.
 - **Gestión de ejercicios**: crear, editar y eliminar ejercicios propios (nombre, grupo muscular, descripción).
 - **Gestión de rutinas**: crear rutinas compuestas por múltiples ejercicios, cada uno configurable con:
   - Series y peso
@@ -24,12 +30,20 @@ Aplicación full stack (MERN) para crear rutinas de entrenamiento personalizadas
 **Backend**
 - Node.js + Express 5
 - MongoDB + Mongoose
-- Arquitectura en capas: rutas → controladores → modelos
+- Autenticación con JWT (jsonwebtoken) y hasheo de contraseñas con bcrypt
+- Arquitectura en capas: rutas → middlewares → controladores → modelos
 - CORS + dotenv para configuración de entorno
 
 ## API REST
 
-**Ejercicios** (`/api/exercises`)
+**Autenticación** (`/api/auth`) — pública
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/register` | Crea un usuario y devuelve un token JWT |
+| POST | `/login` | Valida credenciales y devuelve un token JWT |
+
+**Ejercicios** (`/api/exercises`) — requiere token
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
@@ -39,7 +53,7 @@ Aplicación full stack (MERN) para crear rutinas de entrenamiento personalizadas
 | PATCH | `/:id` | Actualiza un ejercicio |
 | DELETE | `/:id` | Elimina un ejercicio |
 
-**Rutinas** (`/api/routines`)
+**Rutinas** (`/api/routines`) — requiere token
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
@@ -60,6 +74,8 @@ Una **rutina** contiene un array de bloques de ejercicio, cada uno con referenci
 - **Medición dual (reps o tiempo)**: cada bloque de ejercicio dentro de una rutina puede medirse por repeticiones (avance manual del usuario) o por tiempo (avance automático del timer), cubriendo tanto ejercicios de fuerza como de resistencia/cardio.
 - **Validación a nivel de esquema**: la regla que exige `reps` o `executionTime` según `measureType` vive en el modelo de Mongoose, no en el controlador ni en el frontend — así cualquier consumidor futuro de la API (otra app, un script, Postman) queda protegido por la misma regla de negocio.
 - **`populate` en las consultas de rutinas**: el backend resuelve automáticamente la referencia a cada ejercicio (`exercises.exercise`) antes de responder, para que el frontend reciba el nombre y los datos del ejercicio sin tener que hacer requests adicionales.
+- **Ownership a nivel de query, no solo de UI**: cada ejercicio y rutina tiene un campo `user` (referencia al dueño), y todos los controladores filtran por `{ _id, user: req.userId }` en lugar de buscar solo por `_id`. Esto evita vulnerabilidades de tipo IDOR (Insecure Direct Object Reference), donde un usuario autenticado podría leer o modificar datos de otro con solo adivinar o probar IDs ajenos.
+- **Passwords hasheadas con bcrypt, nunca en texto plano**: el modelo de usuario nunca guarda la contraseña original; se almacena su hash. El login compara la contraseña ingresada contra ese hash sin necesidad de desencriptarlo.
 
 ## Variables de entorno
 
@@ -69,6 +85,7 @@ El servidor valida al arrancar que existan estas variables (si falta alguna, lan
 PORT=3030
 NODE_ENV=development
 MONGO_URI=mongodb+srv://usuario:password@cluster.mongodb.net/trainingapp
+JWT_SECRET=una_clave_larga_y_random
 ```
 
 ## Instalación y uso
@@ -89,12 +106,6 @@ npm run dev
 ```
 
 La app corre en modo desarrollo con Vite; el cliente consume la API en `http://localhost:3030/api`.
-
-## Roadmap
-
-- [ ] Autenticación de usuarios (JWT) para que cada usuario tenga sus propias rutinas y ejercicios
-- [ ] Historial de rutinas completadas
-- [ ] Deploy de frontend y backend
 
 ## Autor
 
