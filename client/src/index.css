@@ -2,20 +2,20 @@
    DESIGN TOKENS
    ============================================ */
 :root {
-  --bg-base: #15171b;
-  --bg-surface: #1d2024;
-  --bg-raised: #24282e;
-  --border: #2e3339;
-  --border-soft: #262a2f;
+  --bg-base: #1a1d29;
+  --bg-surface: #232838;
+  --bg-raised: #2c3244;
+  --border: #3a4155;
+  --border-soft: #2f3548;
 
-  --text-primary: #edebe6;
-  --text-muted: #8a8f97;
-  --text-faint: #5c6067;
+  --text-primary: #f5f3ee;
+  --text-muted: #9aa0ac;
+  --text-faint: #6b7180;
 
-  --ember: #ff6a3d;
-  --ember-dim: #4a2c1e;
-  --cool: #4fa3f7;
-  --cool-dim: #1e2e40;
+  --ember: #ff7a45;
+  --ember-dim: #4a2c1a;
+  --cool: #2d84f7;
+  --cool-dim: #16263f;
   --success: #5fd98a;
   --success-dim: #1c3327;
   --danger: #ff5c5c;

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../services/auth.service';
 import { useAuth } from '../context/AuthContext';
+import AuthHeader from '../components/AuthHeader';
 
 function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -28,6 +29,7 @@ function RegisterPage() {
 
   return (
     <form onSubmit={handleSubmit}>
+      <AuthHeader />
       <h2>Crear cuenta</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <div>

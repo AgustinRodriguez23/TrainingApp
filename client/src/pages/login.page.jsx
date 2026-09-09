@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginUser } from '../services/auth.service';
 import { useAuth } from '../context/AuthContext';
+import AuthHeader from '../components/AuthHeader';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -28,6 +29,7 @@ function LoginPage() {
 
   return (
     <form onSubmit={handleSubmit}>
+      <AuthHeader />
       <h2>Iniciar sesión</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <div>
