@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getRoutineById } from '../services/routine.service';
+import { createRoutineLog } from '../services/routine.log.service';
 import useTimer from '../hooks/useTimer';
 
 // Fases posibles dentro de un ejercicio
@@ -21,6 +22,11 @@ function RoutineExecution() {
   const [phase, setPhase] = useState(PHASE.EXECUTION);
   const [finished, setFinished] = useState(false);
 
+  const [logExercises, setLogExercises] = useState([]);
+  const [actualReps, setActualReps] = useState(0);
+  const [actualWeight, setActualWeight] = useState(0);
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     getRoutineById(id)
       .then((res) => setRoutine(res.data))
@@ -32,11 +38,25 @@ function RoutineExecution() {
   const isLastSeries = currentBlock && seriesNumber >= currentBlock.series;
   const isLastExercise = routine && exerciseIndex >= routine.exercises.length - 1;
 
+  const logCurrentSet = () => {
+  setLogExercises((prev) => {
+    const copy = [...prev];
+    let entry = copy.find((e) => e.exercise === currentBlock.exercise?._id);
+    if (!entry) {
+      entry = { exercise: currentBlock.exercise?._id, exerciseName: exerciseName, sets: [] };
+      copy.push(entry);
+    }
+    entry.sets.push({ seriesNumber, reps: actualReps, weight: actualWeight });
+    return copy;
+  });
+};
+
   // Avanza al siguiente paso de la máquina de estados
   const advance = useCallback(() => {
     if (!currentBlock) return;
 
     if (phase === PHASE.EXECUTION) {
+      logCurrentSet()
       if (!isLastSeries) {
         setPhase(PHASE.REST_BETWEEN_SERIES);
       } else {
@@ -60,7 +80,7 @@ function RoutineExecution() {
         setPhase(PHASE.EXECUTION);
       }
     }
-  }, [phase, isLastSeries, isLastExercise, currentBlock]);
+  }, [phase, isLastSeries, isLastExercise, currentBlock, actualReps, actualWeight]);
 
   // Duración del timer según la fase actual (0 si es fase de "reps", se maneja manual)
   const getPhaseSeconds = () => {
@@ -72,6 +92,13 @@ function RoutineExecution() {
     if (phase === PHASE.REST_AFTER_EXERCISE) return currentBlock.restAfterExercise;
     return 0;
   };
+
+  useEffect(() => {
+    if (!currentBlock) return;
+    setActualReps(currentBlock.reps ?? 0);
+    setActualWeight(currentBlock.weight ?? 0);
+  }, [exerciseIndex, seriesNumber, currentBlock]);
+
 
   const timer = useTimer(getPhaseSeconds(), advance);
 
@@ -88,7 +115,18 @@ function RoutineExecution() {
       timer.start(seconds);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exerciseIndex, seriesNumber, phase]);
+  }, [exerciseIndex, seriesNumber, phase, routine]);
+
+  useEffect(() => {
+  if (finished && logExercises.length > 0 && !saving) {
+    setSaving(true);
+    createRoutineLog({
+      routine: routine._id,
+      routineName: routine.name,
+      exercises: logExercises
+    }).catch((err) => console.error('Error al guardar el historial:', err));
+  }
+}, [finished]);
 
   if (loading) return <p>Cargando rutina...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -125,17 +163,17 @@ function RoutineExecution() {
 
       {phase === PHASE.EXECUTION && (
         <div className="phase-card phase-execution">
-            <h3>Ejecución</h3>
-            {currentBlock.measureType === 'reps' ? (
+          <h3>Ejecución</h3>
+          {currentBlock.measureType === 'reps' ? (
             <div>
-                <p className="phase-reps">{currentBlock.reps} reps</p>
-                <button onClick={advance}>Listo, siguiente</button>
+              <p className="phase-reps">{currentBlock.reps} reps</p>
+              <button onClick={advance}>Listo, siguiente</button>
             </div>
-            ) : (
+          ) : (
             <p className="timer-display">{timer.secondsLeft}s</p>
-            )}
+          )}
         </div>
-        )}
+      )}
 
       {phase === PHASE.REST_BETWEEN_SERIES && (
         <div className="phase-card phase-rest">

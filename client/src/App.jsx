@@ -6,6 +6,7 @@ import LoginPage from './pages/login.page';
 import RegisterPage from './pages/register.page';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
+import HistoryPage from './pages/history.page';
 
 function App() {
   const { user, logout } = useAuth();
@@ -13,16 +14,16 @@ function App() {
   return (
     <div>
       <nav>
-        <Link to="/">Rutinas</Link>
-        {' | '}
-        <Link to="/exercises">Ejercicios</Link>
+        <div className="nav-links">
+          <Link to="/">Rutinas</Link>
+          <Link to="/exercises">Ejercicios</Link>
+          <Link to="/history">Historial</Link>
+        </div>
         {user && (
-          <>
-            {' | '}
-            <span>{user.email}</span>
-            {' '}
+          <div className="nav-user">
+            <span className="nav-email">{user.email}</span>
             <button onClick={logout}>Cerrar sesión</button>
-          </>
+          </div>
         )}
       </nav>
 
@@ -32,6 +33,7 @@ function App() {
         <Route path="/" element={<ProtectedRoute><RoutineList /></ProtectedRoute>} />
         <Route path="/exercises" element={<ProtectedRoute><ExercisesPage /></ProtectedRoute>} />
         <Route path="/routines/:id" element={<ProtectedRoute><RoutineExecution /></ProtectedRoute>} />
+        <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
       </Routes>
     </div>
   );

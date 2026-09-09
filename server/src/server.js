@@ -8,6 +8,7 @@ import { config } from "./config/config.js"
 import exerciseRoutes from "./routes/exercise.routes.js" 
 import routineRoutes from "./routes/routine.routes.js"
 import authRoutes from "./routes/auth.routes.js";
+import routineLogRoutes from "./routes/routine.log.routes.js";
 
 
 const app = express()
@@ -18,6 +19,7 @@ app.use(express.json())
 app.use("/api/auth", authRoutes)
 app.use("/api/exercises", requireAuth, exerciseRoutes)
 app.use("/api/routines", requireAuth, routineRoutes)
+app.use("/api/routine-logs", requireAuth, routineLogRoutes);
 
 app.get("/", (req, res) =>{
     res.json({status: 'ok'})
