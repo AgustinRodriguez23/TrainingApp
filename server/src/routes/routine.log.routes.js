@@ -7,4 +7,6 @@ router.get("/", RoutineLogController.getLogs);
 
 router.post("/", RoutineLogController.createLog);
 
+router.delete("/", RoutineLogController.deleteAllLogs);
+
 export default router;

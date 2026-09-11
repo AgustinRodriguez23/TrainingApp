@@ -25,6 +25,15 @@ class RoutineLogController {
       res.status(500).json({ message: error.message });
     }
   };
+
+  static deleteAllLogs = async (req, res) => {
+    try {
+      await RoutineLogModel.deleteMany({ user: req.userId });
+      res.json({ message: 'Historial eliminado' });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
 }
 
 export default RoutineLogController;

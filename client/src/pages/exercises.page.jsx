@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { getExercises, deleteExercise } from '../services/exercise.service';
 import ExerciseForm from './exercise.form';
+import { useConfirm } from '../context/ConfirmContext';
 
 function ExercisesPage() {
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingExercise, setEditingExercise] = useState(null);
+  const confirm = useConfirm();
 
   const loadExercises = () => {
     setLoading(true);
@@ -30,7 +32,12 @@ function ExercisesPage() {
   };
 
   const handleDelete = async (id) => {
-    const confirmed = window.confirm('¿Seguro que querés borrar este ejercicio?');
+      const confirmed = await confirm({
+        title: '¿Borrar ejercicio?',
+        message: 'Esta acción no se puede deshacer.',
+        confirmText: 'Borrar',
+        cancelText: 'Cancelar'
+      });
     if (!confirmed) return;
 
     try {

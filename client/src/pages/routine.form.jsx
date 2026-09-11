@@ -53,6 +53,8 @@ function RoutineForm({ onCreated, onUpdated, editingRoutine, onCancelEdit }) {
     }
   }, [editingRoutine]);
 
+  const selectAllOnFocus = (e) => e.target.select();
+
   const updateBlock = (index, field, value) => {
     setBlocks((prev) =>
       prev.map((block, i) => (i === index ? { ...block, [field]: value } : block))
@@ -173,6 +175,7 @@ function RoutineForm({ onCreated, onUpdated, editingRoutine, onCancelEdit }) {
               min="0"
               value={block.series}
               onChange={(e) => updateBlockNumber(index, 'series', e.target.value)}
+              onFocus={selectAllOnFocus}
             />
           </div>
 
@@ -183,6 +186,7 @@ function RoutineForm({ onCreated, onUpdated, editingRoutine, onCancelEdit }) {
               min="0"
               value={block.weight}
               onChange={(e) => updateBlockNumber(index, 'weight', e.target.value)}
+              onFocus={selectAllOnFocus}
             />
           </div>
 
@@ -205,6 +209,7 @@ function RoutineForm({ onCreated, onUpdated, editingRoutine, onCancelEdit }) {
                 min="0"
                 value={block.reps}
                 onChange={(e) => updateBlockNumber(index, 'reps', e.target.value)}
+                onFocus={selectAllOnFocus}
               />
             </div>
           ) : (
@@ -215,6 +220,7 @@ function RoutineForm({ onCreated, onUpdated, editingRoutine, onCancelEdit }) {
                 min="0"
                 value={block.executionTime}
                 onChange={(e) => updateBlockNumber(index, 'executionTime', e.target.value)}
+                onFocus={selectAllOnFocus}
               />
             </div>
           )}
@@ -226,6 +232,7 @@ function RoutineForm({ onCreated, onUpdated, editingRoutine, onCancelEdit }) {
               min="0"
               value={block.restBetweenSeries}
               onChange={(e) => updateBlockNumber(index, 'restBetweenSeries', e.target.value)}
+              onFocus={selectAllOnFocus}
             />
           </div>
 
@@ -236,6 +243,7 @@ function RoutineForm({ onCreated, onUpdated, editingRoutine, onCancelEdit }) {
               min="0"
               value={block.restAfterExercise}
               onChange={(e) => updateBlockNumber(index, 'restAfterExercise', e.target.value)}
+              onFocus={selectAllOnFocus}
             />
           </div>
 

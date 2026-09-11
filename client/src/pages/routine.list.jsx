@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getRoutines, deleteRoutine } from '../services/routine.service';
 import RoutineForm from './routine.form';
+import { useConfirm } from '../context/ConfirmContext';
 
 function RoutineList() {
   const [routines, setRoutines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingRoutine, setEditingRoutine] = useState(null);
+  const confirm = useConfirm();
 
   const loadRoutines = () => {
     setLoading(true);
@@ -33,7 +35,12 @@ function RoutineList() {
   };
 
   const handleDelete = async (id) => {
-    const confirmed = window.confirm('¿Seguro que querés borrar esta rutina?');
+    const confirmed = await confirm({
+      title: '¿Borrar rutina?',
+      message: 'Esta acción no se puede deshacer.',
+      confirmText: 'Borrar',
+      cancelText: 'Cancelar'
+    });
     if (!confirmed) return;
 
     try {
